@@ -28,7 +28,7 @@ The goal is to reduce manual CLI work, improve visibility into infrastructure ch
 - macOS
 - Python 3.9.6
 - Netmiko for SSH-based device automation
-- GNS3 for network simulation
+- GNS3 for network simulation [may use cisco devnet sandbox to emulate and connect to devices]
 - Cisco IOSv router with SSH enabled
 
 
