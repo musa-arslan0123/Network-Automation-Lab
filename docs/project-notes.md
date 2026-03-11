@@ -109,3 +109,50 @@ The fix is to strip that key before passing the dictionary to Netmiko:
 device_params = {k: v for k, v in device.items() if k != "name"}
 connection = ConnectHandler(**device_params)
 ```
+
+
+
+
+
+---
+
+## Connecting to the DevNet Sandbox via VPN (OpenConnect)
+
+The reserved DevNet sandbox requires a VPN connection. This project uses **OpenConnect**, a free open-source alternative to Cisco AnyConnect.
+
+### Step 1: Install OpenConnect
+
+```bash
+brew install openconnect
+```
+
+### Step 2: Connect to the VPN
+
+```bash
+sudo openconnect devnetsandbox-usw1-reservation.cisco.com:20260
+# When prompted:
+# Username: musaarsl
+# Password: <your reservation password>
+```
+
+> Note: The VPN credentials are specific to each reservation and will change when you reserve a new sandbox.
+
+### Step 3: Verify the connection
+
+Ping a sandbox device to confirm connectivity:
+
+```bash
+ping 10.10.20.48
+```
+
+Then SSH in directly:
+
+```bash
+ssh developer@10.10.20.48
+# Password: C1sco12345
+```
+
+### Important Notes
+
+- Sandbox reservations have a time limit — extend it on the DevNet portal before it expires.
+- If you see a certificate warning on first connect, accept it — this is normal for DevNet sandboxes.
