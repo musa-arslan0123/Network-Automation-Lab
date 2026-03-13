@@ -79,7 +79,7 @@ The core script follows this sequence:
 4. **Check for existing backup** — look for a previously saved configuration file
 5. **Compare configs** — if a backup exists, diff it against the newly retrieved config
 6. **Report changes** — surface any detected differences
-7. **Save new backup** — store the latest config as a timestamped backup file
+7. **Save new backup** — store the latest config as a timestamped backup file using `backup_manager.py`. Filenames follow the format `DeviceName_YYYY-MM-DD_HH-MM-SS.txt` and are saved to the `backups/` folder
 
 ---
 
@@ -106,6 +106,71 @@ The device inventory YAML includes a `name` field (e.g. `"Router-1"`) for human-
 The fix is to strip that key before passing the dictionary to Netmiko:
 
 ```python
-device_params = {k: v for k, v in device.items() if k != "name"}
-connection = ConnectHandler(**device_params)
+temp_device = device.copy()
+temp_device.pop("name")
+connection = ConnectHandler(**temp_device)
 ```
+
+
+
+
+
+---
+
+## Script Descriptions
+
+### `scripts/ssh_config.py`
+Contains `get_running_config(device)`. Accepts a device dict, strips the `name` key, connects via Netmiko, enters enable mode, runs `show running-config`, disconnects, and returns the output as a string.
+
+### `scripts/backup_manager.py`
+Contains `save_backup(device_name, config)`. Generates a timestamped filename in the format `DeviceName_YYYY-MM-DD_HH-MM-SS.txt` and writes the config string to `backups/`.
+
+### `scripts/check_config.py`
+Contains `check_config(old_config, new_config)`. Compares two config strings using `difflib.unified_diff`. Prints line-by-line differences if changes are detected, otherwise prints "No Change Detected".
+
+### `main.py`
+Entry point. Loads `inventory/devices.yaml`, loops through each device, retrieves the live config, checks for an existing backup to compare against, and saves a new backup on every run.
+
+---
+
+## Connecting to the DevNet Sandbox via VPN (OpenConnect)
+
+The reserved DevNet sandbox requires a VPN connection. This project uses **OpenConnect**, a free open-source alternative to Cisco AnyConnect.
+
+### Step 1: Install OpenConnect
+
+```bash
+brew install openconnect
+```
+
+### Step 2: Connect to the VPN
+
+```bash
+sudo openconnect devnetsandbox-usw1-reservation.cisco.com:20260
+# When prompted:
+# Username: musaarsl
+# Password: <your reservation password>
+```
+
+> Note: The VPN credentials are specific to each reservation and will change when you reserve a new sandbox.
+
+### Step 3: Verify the connection
+
+Ping a sandbox device to confirm connectivity:
+
+```bash
+ping 10.10.20.48
+```
+
+Then SSH in directly:
+
+```bash
+ssh developer@10.10.20.48
+# Password: <sandbox password>
+```
+
+### Important Notes
+
+- Sandbox reservations have a time limit — extend it on the DevNet portal before it expires.
+- If you see a certificate warning on first connect, accept it — this is normal for DevNet sandboxes.
+- `inventory/devices.yaml` is listed in `.gitignore` to prevent credentials from being pushed to GitHub. Never remove this entry.
